@@ -91,7 +91,7 @@ def cost_simulate_unsub_costs(
         customer_conversion_rate (list, optional): List of values for customer conversion to simulate. Defaults to [0.04, 0.05, 0.06].
 
     Returns:
-        _type_: DataFrame: Cartesian product of the email list and customer 
+        DataFrame: Cartesian product of the email list and customer 
         conversion rate is caluclated and total unsubscriber costs are calcualted.
      """
     
@@ -132,3 +132,40 @@ def cost_simulate_unsub_costs(
     
         
     return simulation_results_df
+
+@pf.register_dataframe_method
+def cost_plot_simulated_unsub_costs(simulation_results):
+    """A plotting function to plot the 
+    results of the cost simulation.
+
+    Args:
+        simulation_results (DataFrame): Output of the 
+        cost_simulate_unsub_costs function.
+
+    Returns:
+        Plotly Plot: Heatmap that visualizes the cost simulation.
+    """
+    
+    
+    simulation_results_wide_df = (simulation_results
+        .drop('cost_no_growth', axis=1)
+        .pivot(
+            index   = 'email_list_monthly_growth_rate',
+            columns = 'customer_conversion_rate',
+            values  ='cost_with_growth'
+        )
+    )
+        
+    fig = px.imshow(
+        simulation_results_wide_df,
+        origin='lower',
+        aspect = 'auto',
+        title = "Lead Cost Simulation",
+        labels = dict(
+            x = 'Customer Conversion Rate',
+            y = 'Monthly Email Growth Rate',
+            color = 'Cost of Unsubscription'
+        )
+    )
+    
+    return fig

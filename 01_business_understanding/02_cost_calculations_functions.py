@@ -6,9 +6,9 @@
 
 # TEST CALCULATIONS ----
 
-import email_lead_scoring as cls
+import email_lead_scoring as els
 
-cls.cost_calc_monthly_cost_table(
+els.cost_calc_monthly_cost_table(
     email_list_size = 1e5, 
     email_list_growth_rate = 0.035,
     sales_emails_per_month = 5,
@@ -20,7 +20,7 @@ cls.cost_calc_monthly_cost_table(
 
 # ?clf.cost_calc_monthly_cost_table
 
-(cls.cost_calc_monthly_cost_table(
+(els.cost_calc_monthly_cost_table(
     email_list_size = 1e5, 
     email_list_growth_rate = 0.035,
     sales_emails_per_month = 5,
@@ -32,8 +32,14 @@ cls.cost_calc_monthly_cost_table(
  .cost_total_unsub_cost()
  )
 
-# ?cls.cost_total_unsub_cost
+# ?els.cost_total_unsub_cost
 
-cls.cost_simulate_unsub_costs()
+els.cost_simulate_unsub_costs()
 
-?cls.cost_simulate_unsub_costs
+?els.cost_simulate_unsub_costs
+
+(els.cost_simulate_unsub_costs(
+    email_list_monthly_growth_rate=[0.015, 0.025, 0.035]
+    )
+ .cost_plot_simulated_unsub_costs()
+)
