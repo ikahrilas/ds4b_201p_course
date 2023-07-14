@@ -310,8 +310,14 @@ subscribers_joined_df = (subscribers_df
 
 # 4.0 SWEETVIZ EDA REPORT
 
+report = sv.analyze(
+    subscribers_joined_df,
+    target_feat='made_purchase'
+)
 
-
+report.show_html(
+    filepath='02_data_understanding/subscriber_eda_report.html',
+)
 
 # 5.0 DEVELOP KPI'S ----
 # - Reduce unnecessary sales emails by 30% while maintaing 99% of sales
@@ -319,8 +325,15 @@ subscribers_joined_df = (subscribers_df
 
 # EVALUATE PERFORMANCE -----
 
-
-    
+(subscribers_joined_df
+ [['made_purchase', 'tag_count']]
+ .groupby('made_purchase')
+ .agg(
+     mean_tag_count = ('tag_count', 'mean'),
+     median_tag_count = ('tag_count', 'median'),
+     count_subsribers = ('tag_count', 'count')
+ )
+)
 
 # WHAT COULD BE MISSED?
 # - More information on which tags are most important
