@@ -108,19 +108,56 @@ def db_read_els_data(
     
     return subscribers_joined_df
 
-db_read_els_data()
+db_read_els_data().info()
 
 # Read Table Names
 
+def dt_read_els_table_names(
+    conn_string='sqlite:///00_database/crm_database.sqlite'
+    ):
+    
+    # Connect to engine
+    
+    engine = sql.create_engine(conn_string)
+    conn = engine.connect()
+    
+    # Read table names
+    
+    table_names = sql.inspect(engine).get_table_names()
+    
+    return table_names
 
+dt_read_els_table_names()
 
 # Get Raw Table
 
+def db_read_raw_els_table(
+    table_name = 'Products',
+    conn_string='sqlite:///00_database/crm_database.sqlite'
+    ):
+    
+    engine = sql.create_engine(conn_string)
+    
+    with engine.connect() as conn:
+    
+        df = pd.read_sql(
+            sql=f"""
+            select * from {table_name}
+            """,
+            con=conn
+        )
+    
+    return df
 
-
+db_read_raw_els_table('Website')
 
 
 # TEST IT OUT -----
 
+import email_lead_scoring as els 
 
+els.db_read_els_data()
 
+els.db_read_raw_els_table('Website')
+
+els.db_read_els_table_names()
