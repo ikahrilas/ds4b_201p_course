@@ -197,6 +197,3 @@ report.show_html(
 # - Optin Days: After 100 days, increases to 2% to 4-5% likelihood
 # - Ratio of Tag Counts to Length of Time: Goes from zero to 15% at 0.10 (1 tag for every 10 days on list)
 # - Attending Learning Labs & Webinars: Increases from 2% to 10%
-
-
-
