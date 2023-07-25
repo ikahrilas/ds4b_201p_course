@@ -4,3 +4,5 @@
 /effective_pandas_scripts
 /environment.yml
 /logs.log
+/mlruns
+/catboost_info
