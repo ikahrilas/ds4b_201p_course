@@ -18,3 +18,7 @@ from .exploratory import (
     explore_sales_by_category,
     explore_sales_by_numeric
 )
+
+from .modeling import (
+    model_score_leads
+)
