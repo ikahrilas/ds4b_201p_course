@@ -21,29 +21,105 @@ leads_df = els.db_read_and_process_els_data()
 
 # Initialize H2O
 
-
+h2o.init(
+    max_mem_size = 4
+)
 
 # Convert to H2O Frame
 
+type(leads_df)
 
+leads_h2o = h2o.H2OFrame(leads_df)
 
+leads_h2o.describe()
+
+leads_h2o['made_purchase'] = leads_h2o['made_purchase'].asfactor()
+
+leads_h2o.describe()
 
 # Prep for AutoML
 
+print(leads_h2o.columns)
 
+x_cols = [
+    # 'mailchimp_id', 'user_full_name', 'user_email', 
+          'member_rating', 
+          #'optin_time', 
+          'country_code', 
+          'tag_count', 
+          #'made_purchase', 
+          'optin_days', 
+          'email_provider', 'tag_count_by_optin_day', 
+          'tag_aws_webinar', 'tag_learning_lab', 
+          'tag_learning_lab_05', 'tag_learning_lab_09', 
+          'tag_learning_lab_11', 'tag_learning_lab_12', 
+          'tag_learning_lab_13', 'tag_learning_lab_14', 
+          'tag_learning_lab_15', 'tag_learning_lab_16', 
+          'tag_learning_lab_17', 'tag_learning_lab_18', 
+          'tag_learning_lab_19', 'tag_learning_lab_20', 
+          'tag_learning_lab_21', 'tag_learning_lab_22', 
+          'tag_learning_lab_23', 'tag_learning_lab_24', 
+          'tag_learning_lab_25', 'tag_learning_lab_26', 
+          'tag_learning_lab_27', 'tag_learning_lab_28', 
+          'tag_learning_lab_29', 'tag_learning_lab_30', 
+          'tag_learning_lab_31', 'tag_learning_lab_32', 
+          'tag_learning_lab_33', 'tag_learning_lab_34', 
+          'tag_learning_lab_35', 'tag_learning_lab_36', 
+          'tag_learning_lab_37', 'tag_learning_lab_38', 
+          'tag_learning_lab_39', 'tag_learning_lab_40', 
+          'tag_learning_lab_41', 'tag_learning_lab_42', 
+          'tag_learning_lab_43', 'tag_learning_lab_44', 
+          'tag_learning_lab_45', 'tag_learning_lab_46', 
+          'tag_learning_lab_47', 'tag_time_series_webinar', 
+          'tag_webinar', 'tag_webinar_01', 'tag_webinar_no_degree', 
+          'tag_webinar_no_degree_02'
+    ]
 
+y_col = 'made_purchase'
 
 # 2.0 RUN H2O AUTOML ----
 
 # H2OAutoML
 
+aml = H2OAutoML(
+    nfolds = 5,
+    exclude_algos=['DeepLearning'],  # Speeding up the training
+    max_runtime_secs = 180,
+    seed=123
+)
 
+aml.train(
+    x = x_cols,
+    y = y_col,
+    training_frame=leads_h2o
+)
 
+aml.leaderboard
+
+model_h2o_stacked_ensemble = h2o.get_model(aml.leaderboard[0, 'model_id'])
 
 # Save / load the model
 
+h2o.save_model(
+    model=model_h2o_stacked_ensemble,
+    path="models",
+    filename="model_h2o_stacked_ensemble",
+    force=True
+)
 
+h2o.load_model("models/model_h2o_stacked_ensemble")
 
+h2o.__version__
+
+predictions_h2o = model_h2o_stacked_ensemble.predict(leads_h2o)
+
+predictions_h2o_df = predictions_h2o.as_data_frame()
+
+(pd.concat(
+    [leads_df, predictions_h2o_df],
+    axis = 'columns'
+    )
+.sort_values('p1', ascending=False))
 
 # CONCLUSIONS ----
 # 1. H2O AutoML handles A LOT of stuff for you (preprocessing)
