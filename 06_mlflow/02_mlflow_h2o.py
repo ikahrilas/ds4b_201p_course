@@ -101,21 +101,57 @@ mlflow_h2o.log_model(aml.leader, artifact_path="model")
 
 
 # Log Metrics
+aml.leader.logloss()
+aml.leader.auc()
 
+mlflow.log_metric("logloss", aml.leader.logloss())
+mlflow.log_metric("auc", aml.leader.auc())
+
+# Set Tags
+
+mlflow.set_tag("Source", "h2o_automl_model")
+
+active_run_id = mlflow.active_run().info.run_id
+
+mlflow.set_tag("Run ID", active_run_id)
 
 # Print Model URI (location)
+model_uri = mlflow.get_artifact_uri("model")
 
+print(model_uri)
 
 # Print and view AutoML Leaderboard
-
+lb = h2o.automl.get_leaderboard(aml, extra_columns='ALL')
 
 # Save leaderboard as CSV Artifact
+experiment_id = experiment.experiment_id
+run_id = mlflow.active_run().info.run_id
 
+try:
+    lb_path = f'mlruns/{experiment_id}/{run_id}/artifacts/model/leaderboard.csv'
+    lb.as_data_frame().to_csv(lb_path, index = False)
+    print(f"Leaderboard saved to: {lb_path}")
+except:
+    print("Could not save leaderboard as CSV file")
 
+# End the mlflow run
+
+mlflow.end_run()
 
 # PREDICTIONS ---- 
 # - Copy from MLFlow UI Artifacts 
 
+import mlflow
+logged_model = 'runs:/c411dc3c4d0d48e580b5d951c6a71e11/model'
+
+# Load model as a PyFuncModel.
+loaded_model = mlflow.pyfunc.load_model(logged_model)
+
+# Predict on a Pandas DataFrame.
+import pandas as pd
+loaded_model.predict(leads_df)['p1']
+
+loaded_model._model_impl
 
 
 # CONCLUSIONS ----
