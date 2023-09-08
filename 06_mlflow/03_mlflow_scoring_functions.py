@@ -67,7 +67,6 @@ mlflow_get_best_run(
 )
 
 
-
 # 2.0 PREDICT WITH THE MODEL (LEAD SCORING FUNCTION)
 
 
@@ -75,12 +74,89 @@ mlflow_get_best_run(
 
 # H2O
 
+run_id = mlflow_get_best_run('automl_lead_scoring_1')
+
+logged_model = f'runs:/{run_id}/model'
+
+loaded_model = mlflow.pyfunc.load_model(logged_model)
+
+loaded_model.predict(leads_df)['p1']
+
 # Sklearn / Pycaret (Extract)
+
+run_id = mlflow_get_best_run('email_lead_scoring_0')
+
+logged_model = f'runs:/{run_id}/model'
+
+loaded_model = mlflow.pyfunc.load_model(logged_model)
+
+df = (leads_df
+ .drop(columns=[
+     'mailchimp_id', 
+     'user_full_name', 
+     'user_email', 
+     'optin_time', 
+     'email_provider',
+     'made_purchase'
+     ],
+       axis = 'columns')
+ .assign(
+     member_rating = leads_df.member_rating.astype(str)
+ )
+)
+
+loaded_model._model_impl.predict_proba(df)[:,1]
 
 # Function
 
+def mlflow_score_leads(df, run_id):
+
+    logged_model = f'runs:/{run_id}/model'
+    
+    print(f'The logged model is: {logged_model}')
+    
+    loaded_model = mlflow.pyfunc.load_model(logged_model)
+    
+    # Predict
+    
+    try:
+        predictions_array = loaded_model.predict(pd.DataFrame(df))['p1']
+    except:
+        df1 = (df
+        .drop(columns=[
+            'mailchimp_id', 
+            'user_full_name', 
+            'user_email', 
+            'optin_time', 
+            'email_provider',
+            'made_purchase'
+            ],
+            axis = 'columns')
+        .assign(
+            member_rating = leads_df.member_rating.astype(str)
+         )
+        )
+        
+        predictions_array = loaded_model._model_impl.predict_proba(df1)[:,1]
+        
+    predictions_series = pd.Series(predictions_array, name = 'Score')
+    
+    ret = pd.concat([predictions_series, df], axis = 'columns')
+    
+    return ret
+
+mlflow_score_leads(
+    leads_df, 
+    mlflow_get_best_run('email_lead_scoring_0')
+)
 
 
 # 3.0 TEST WORKFLOW ----
 
+import email_lead_scoring as els
 
+leads_df = els.db_read_and_process_els_data()
+
+best_run_id = els.mlflow_get_best_run('email_lead_scoring_0')
+
+els.mlflow_score_leads(df = leads_df, run_id = best_run_id)
